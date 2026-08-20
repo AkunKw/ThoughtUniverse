@@ -1,0 +1,30 @@
+{
+  "name": "thoughtuniverse",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=node_modules/@next/swc-wasm-nodejs next dev --webpack",
+    "build": "cross-env NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=node_modules/@next/swc-wasm-nodejs next build --webpack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.3.1",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "cross-env": "^10.1.0",
+    "eslint": "latest",
+    "eslint-config-next": "16.3.1",
+    "tailwindcss": "latest",
+    "typescript": "latest"
+  },
+  "optionalDependencies": {
+    "@next/swc-wasm-nodejs": "16.3.1"
+  }
+}
