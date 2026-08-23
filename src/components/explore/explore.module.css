@@ -1,0 +1,70 @@
+.exploreScreen {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background-color: #05000f;
+  background-image: url("/explore/images/cosmic-background.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.planetCanvas {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 2;
+  width: clamp(180px, 18.9vw, 252px);
+  height: clamp(180px, 18.9vw, 252px);
+  transform: translate(-50%, -50%);
+}
+
+.constellationField {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  transform: translateY(-6svh);
+}
+
+.constellation {
+  position: absolute;
+  inset: 0;
+}
+
+.constellationLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.constellationLine {
+  stroke: rgb(163 187 234 / 76%);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.constellationStar {
+  position: absolute;
+  width: var(--star-size);
+  height: var(--star-size);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffff 0 6%,
+    #eef4ff 7% 11%,
+    rgb(185 207 255 / 92%) 14%,
+    rgb(104 143 225 / 50%) 27%,
+    rgb(68 105 190 / 20%) 43%,
+    transparent 72%
+  );
+  transform: translate(-50%, -50%);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
