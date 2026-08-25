@@ -1,11 +1,78 @@
 .exploreScreen {
   position: relative;
+  isolation: isolate;
   min-height: 100svh;
   overflow: hidden;
-  background-color: #05000f;
-  background-image: url("/explore/images/cosmic-background.png");
+  background-color: #020207;
+}
+
+.cosmicBackdrop {
+  position: absolute;
+  z-index: 0;
+  inset: -4%;
+  pointer-events: none;
+  transform: perspective(1400px) scale(1.075);
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.cosmicBackdropImage,
+.distantStars {
+  position: absolute;
+  inset: 0;
+}
+
+.cosmicBackdropImage {
+  background-image:
+    linear-gradient(rgb(2 1 8 / 8%), rgb(2 0 7 / 26%)),
+    url("/explore/images/cosmic-background-selected.png");
   background-position: center;
-  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: 82% auto;
+}
+
+
+.exploreScreen::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.distantStars {
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 58%) 0 0.45px, transparent 0.8px),
+    radial-gradient(circle, rgb(210 217 230 / 42%) 0 0.38px, transparent 0.72px),
+    radial-gradient(circle, rgb(238 241 247 / 32%) 0 0.32px, transparent 0.66px);
+  background-position: 19px 31px, 83px 47px, 141px 109px;
+  background-size: 173px 181px, 247px 233px, 331px 293px;
+  filter: blur(0.12px);
+  mask-image: radial-gradient(ellipse at center, #000 0 76%, transparent 100%);
+  opacity: 0.32;
+}
+
+.exploreScreen::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(1 1 5 / 52%) 0%,
+      transparent 11%,
+      transparent 88%,
+      rgb(1 1 4 / 20%) 100%
+    ),
+    radial-gradient(
+      ellipse at 50% 46%,
+      transparent 0 36%,
+      rgb(0 0 4 / 14%) 68%,
+      rgb(0 0 3 / 66%) 100%
+    ),
+    radial-gradient(
+      ellipse at 63% 54%,
+      rgb(224 228 236 / 2.8%) 0%,
+      transparent 48%
+    );
 }
 
 .planetCanvas {
@@ -13,9 +80,29 @@
   left: 50%;
   top: 46%;
   z-index: 2;
+  isolation: isolate;
   width: clamp(180px, 18.9vw, 252px);
   height: clamp(180px, 18.9vw, 252px);
+  filter:
+    drop-shadow(0 16px 34px rgb(0 0 0 / 62%))
+    drop-shadow(0 0 14px rgb(207 214 228 / 10%));
   transform: translate(-50%, -50%);
+}
+
+.planetCanvas::before {
+  position: absolute;
+  z-index: -1;
+  inset: 7%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 58%,
+    rgb(210 217 230 / 7%) 70%,
+    transparent 80%
+  );
+  content: "";
+  filter: blur(6px);
+  pointer-events: none;
 }
 
 .constellationField {
@@ -40,9 +127,10 @@
 }
 
 .constellationLine {
-  stroke: rgb(163 187 234 / 76%);
-  stroke-width: 1.25;
+  stroke: rgb(188 198 221 / 50%);
+  stroke-width: 1.05;
   stroke-linecap: round;
+  filter: drop-shadow(0 0 1.4px rgb(184 195 219 / 18%));
   vector-effect: non-scaling-stroke;
 }
 
@@ -54,20 +142,25 @@
   background: radial-gradient(
     circle,
     rgb(255 255 255 / 100%) 0%,
-    rgb(246 249 255 / 96%) 6%,
-    rgb(222 232 255 / 84%) 13%,
-    rgb(183 203 247 / 66%) 22%,
-    rgb(139 166 231 / 46%) 33%,
-    rgb(99 132 207 / 29%) 45%,
-    rgb(70 101 180 / 15%) 58%,
-    rgb(52 79 148 / 6%) 68%,
-    transparent 78%
+    rgb(249 250 253 / 98%) 4%,
+    rgb(232 236 244 / 88%) 9%,
+    rgb(198 205 220 / 68%) 16%,
+    rgb(151 161 185 / 44%) 25%,
+    rgb(106 119 150 / 26%) 35%,
+    rgb(72 85 116 / 12%) 47%,
+    rgb(48 59 87 / 5%) 58%,
+    transparent 70%
   );
-  filter: blur(0.35px);
+  filter:
+    blur(0.2px)
+    drop-shadow(0 0 0.6px rgb(255 255 255 / 58%))
+    drop-shadow(0 0 3px rgb(180 190 215 / 18%));
   transform: translate(-50%, -50%);
 }
 
 .canvas {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
@@ -103,7 +196,9 @@
   padding: 0;
   overflow: visible;
   opacity: 0.78;
-  filter: drop-shadow(0 1px 0.45px rgb(0 0 0 / 48%));
+  filter:
+    drop-shadow(0 1px 0.8px rgb(0 0 0 / 78%))
+    drop-shadow(0 0 1.2px rgb(236 239 244 / 18%));
 }
 
 .sidebarItemActive {
@@ -152,6 +247,7 @@
       #dce0e5 100%
     );
   content: "";
+  filter: contrast(1.04) brightness(1.02);
   mask-image: var(--sidebar-icon);
   mask-position: center;
   mask-repeat: no-repeat;
@@ -165,7 +261,9 @@
 }
 
 .sidebarItem[data-icon="my-universe"] {
-  filter: drop-shadow(0 0.35px 0.15px rgb(0 0 0 / 24%));
+  filter:
+    drop-shadow(0 0.5px 0.45px rgb(0 0 0 / 50%))
+    drop-shadow(0 0 1px rgb(236 239 244 / 14%));
 }
 
 .proButton {
@@ -186,5 +284,8 @@
   letter-spacing: 0;
   cursor: default;
   opacity: 1;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 76%),
+    0 0 1px rgb(236 239 244 / 12%);
   transform: translateX(-50%);
 }

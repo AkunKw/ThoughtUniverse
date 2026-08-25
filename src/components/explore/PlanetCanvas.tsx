@@ -8,15 +8,20 @@ import styles from "./explore.module.css";
 const MODEL_PATH = "/explore/models/dark-planet.glb";
 
 function createMoonMaterial(sourceMaterial: THREE.Material) {
-  const sourceMap = "map" in sourceMaterial
-    ? (sourceMaterial.map as THREE.Texture | null)
-    : null;
-  const material = new THREE.MeshBasicMaterial({
-    color: sourceMap ? 0xffffff : 0xc8c9cd,
+  const source = sourceMaterial as THREE.MeshStandardMaterial;
+  const sourceMap = source.map ?? null;
+  const material = new THREE.MeshStandardMaterial({
+    color: sourceMap ? 0xffffff : 0xd2d4d9,
     map: sourceMap,
+    normalMap: source.normalMap ?? null,
+    roughnessMap: source.roughnessMap ?? null,
+    roughness: 0.92,
+    metalness: 0,
   });
 
-  material.toneMapped = false;
+  if (source.normalMap) {
+    material.normalScale.copy(source.normalScale);
+  }
 
   if (sourceMap) {
     material.onBeforeCompile = (shader) => {
@@ -24,11 +29,11 @@ function createMoonMaterial(sourceMaterial: THREE.Material) {
         "#include <map_fragment>",
         `#include <map_fragment>
         float sourceLuminance = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-        float moonLuminance = clamp(0.38 + sourceLuminance * 0.72, 0.38, 0.72);
+        float moonLuminance = clamp(0.48 + sourceLuminance * 0.42, 0.48, 0.82);
         diffuseColor.rgb = vec3(moonLuminance);`,
       );
     };
-    material.customProgramCacheKey = () => "thoughtuniverse-moon-material-v2";
+    material.customProgramCacheKey = () => "thoughtuniverse-moon-material-v3";
   }
 
   return material;
@@ -48,6 +53,13 @@ export function PlanetCanvas() {
     const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
     camera.position.set(0, 0, 3.6);
 
+    const ambientLight = new THREE.HemisphereLight(0xf4f5f7, 0x11131a, 1.8);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.65);
+    keyLight.position.set(-3.2, 2.8, 4.5);
+    const fillLight = new THREE.DirectionalLight(0xaab2c1, 0.82);
+    fillLight.position.set(3.4, -1.4, 2.6);
+    scene.add(ambientLight, keyLight, fillLight);
+
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
@@ -56,7 +68,8 @@ export function PlanetCanvas() {
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     renderer.domElement.className = styles.canvas;
     container.appendChild(renderer.domElement);
 
