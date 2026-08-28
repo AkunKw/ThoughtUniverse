@@ -8,7 +8,8 @@ const COLOR_MAP_PATH = "/explore/textures/moon-lro-surface-4k.webp";
 const HEIGHT_MAP_PATH = "/explore/textures/moon-lola-height.png";
 const RESTING_ROTATION = { x: -0.07, y: -0.35 };
 const PLANET_HIT_RADIUS = 0.96;
-const EDGE_BLEND_WIDTH = 0.2;
+const EDGE_BLEND_WIDTH = 0.14;
+const EDGE_CONTACT_PRESSURE = 0.16;
 const MOON_RADIUS_METERS = 1_737_400;
 const HEIGHT_ZERO_LEVEL = 20_000;
 const HEIGHT_UNITS_PER_METER = 2;
@@ -160,11 +161,10 @@ export function PlanetCanvas() {
       }
 
       const contactDepth = PLANET_HIT_RADIUS - distanceFromCenter;
-      const pressure = THREE.MathUtils.smoothstep(
-        contactDepth,
-        0,
-        EDGE_BLEND_WIDTH,
-      );
+      const pressure =
+        EDGE_CONTACT_PRESSURE +
+        (1 - EDGE_CONTACT_PRESSURE) *
+          THREE.MathUtils.smoothstep(contactDepth, 0, EDGE_BLEND_WIDTH);
 
       targetRotationX =
         RESTING_ROTATION.x + normalizedY * 0.04 * pressure;
@@ -225,8 +225,8 @@ export function PlanetCanvas() {
     const render = (time: number) => {
       const delta = Math.min((time - previousTime) / 1000, 0.05);
       previousTime = time;
-      const rotationEase = 1 - Math.exp(-6 * delta);
-      const scaleEase = 1 - Math.exp(-7 * delta);
+      const rotationEase = 1 - Math.exp(-11 * delta);
+      const scaleEase = 1 - Math.exp(-12 * delta);
 
       planetRoot.rotation.x = THREE.MathUtils.lerp(
         planetRoot.rotation.x,
