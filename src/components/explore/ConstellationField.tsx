@@ -230,15 +230,18 @@ export function ConstellationField() {
     let currentOriginY = 50;
     let targetOriginX = 50;
     let targetOriginY = 50;
+    let pointerActive = false;
 
     const resetParallax = () => {
       targetX = 0;
       targetY = 0;
       targetOriginX = 50;
       targetOriginY = 50;
+      pointerActive = false;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      pointerActive = true;
       const normalizedX = (event.clientX / window.innerWidth) * 2 - 1;
       const normalizedY = (event.clientY / window.innerHeight) * 2 - 1;
       targetX = Math.sign(normalizedX) * Math.pow(Math.abs(normalizedX), 0.55);
@@ -259,6 +262,8 @@ export function ConstellationField() {
       const fieldDiagonal = Math.hypot(window.innerWidth, window.innerHeight);
       const pointerX = (currentOriginX / 100) * window.innerWidth;
       const pointerY = (currentOriginY / 100) * window.innerHeight;
+      const hoverPointerX = (targetOriginX / 100) * window.innerWidth;
+      const hoverPointerY = (targetOriginY / 100) * window.innerHeight;
       const starOffsets = new Map<string, { x: number; y: number }>();
       const constellationOffsets = new Map<
         string,
@@ -276,6 +281,30 @@ export function ConstellationField() {
           .sort((a, b) => b.distance - a.distance)
           .slice(0, 3)
           .map(({ id }, index) => [id, [0.94, 0.86, 0.76][index]] as const),
+      );
+      const constellationHover = new Map(
+        constellations.map((constellation) => {
+          const closestStarDistance = Math.min(
+            ...constellation.stars.map((star) =>
+              Math.hypot(
+                fieldRect.left +
+                  (star.x / 100) * fieldRect.width -
+                  hoverPointerX,
+                fieldRect.top +
+                  (star.y / 100) * fieldRect.height -
+                  hoverPointerY,
+              ),
+            ),
+          );
+          const influence = pointerActive
+            ? Math.exp(
+                -(closestStarDistance * closestStarDistance) /
+                  (2 * 118 * 118),
+              )
+            : 0;
+
+          return [constellation.id, influence] as const;
+        }),
       );
 
       constellationElements.forEach((element, id) => {
@@ -365,6 +394,30 @@ export function ConstellationField() {
           targetOffsetY +=
             (isolatedOffsetY - targetOffsetY) * remoteStrength;
         }
+        const constellationId = "constellation-" + id.split("-")[0];
+        const center = constellationCenters.get(constellationId) ?? {
+          x: star.x,
+          y: star.y,
+        };
+        const radialX = ((star.x - center.x) / 100) * fieldWidth;
+        const radialY = ((star.y - center.y) / 100) * fieldHeight;
+        const radialLength = Math.hypot(radialX, radialY) || 1;
+        const normalizedRadialX = radialX / radialLength;
+        const normalizedRadialY = radialY / radialLength;
+        const starIndex = Number(id.split("-")[1]);
+        const geometryInfluence = constellationHover.get(constellationId) ?? 0;
+        const geometryExpansion = 0.38 + (starIndex % 3) * 0.08;
+        const geometryTwist = (starIndex % 2 === 0 ? 1 : -1) * 0.12;
+
+        targetOffsetX +=
+          geometryInfluence *
+          (normalizedRadialX * geometryExpansion -
+            normalizedRadialY * geometryTwist);
+        targetOffsetY +=
+          geometryInfluence *
+          (normalizedRadialY * geometryExpansion +
+            normalizedRadialX * geometryTwist);
+
         const currentOffset = currentStarOffsets.get(id) ?? { x: 0, y: 0 };
         currentOffset.x +=
           (targetOffsetX - currentOffset.x) * motion.response;
