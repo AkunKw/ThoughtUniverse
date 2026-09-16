@@ -1,159 +1,133 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import { constellations } from "./constellationData";
 import styles from "./explore.module.css";
+import { StarCard, type StarCardPlacement } from "./StarCard";
 
-type ConstellationStar = {
-  id: string;
+type StarAnchor = {
   x: number;
   y: number;
-  size: number;
 };
-type StarProps = ConstellationStar;
 
-function Star({ id, x, y, size }: StarProps) {
+type PointerDirection = {
+  x: number;
+  y: number;
+};
+
+function getCardPlacement(
+  id: string,
+  anchor: StarAnchor,
+  pointerDirection: PointerDirection,
+): StarCardPlacement {
+  const safeMargin = 12;
+  const cardWidth = 300;
+  const cardHeight = 220;
+  const canOpenRight = anchor.x + cardWidth <= window.innerWidth - safeMargin;
+  const canOpenLeft = anchor.x - cardWidth >= safeMargin;
+  const canOpenDown = anchor.y + cardHeight <= window.innerHeight - safeMargin;
+  const canOpenUp = anchor.y - cardHeight >= safeMargin;
   const [constellationIndex, starIndex] = id.split("-").map(Number);
-  const motionSeed = constellationIndex * 11 + starIndex * 7;
+  const placementSeed = constellationIndex * 17 + starIndex * 31;
+  const horizontalMotion = Math.abs(pointerDirection.x);
+  const verticalMotion = Math.abs(pointerDirection.y);
+  const followsHorizontalMotion =
+    horizontalMotion >= Math.max(0.35, verticalMotion * 0.35);
+  const followsVerticalMotion =
+    verticalMotion >= Math.max(0.35, horizontalMotion * 0.35);
+  let horizontal: "Left" | "Right" = followsHorizontalMotion
+    ? pointerDirection.x > 0
+      ? "Right"
+      : "Left"
+    : placementSeed % 2 === 0
+      ? "Right"
+      : "Left";
+  let vertical: "Up" | "Down" = followsVerticalMotion
+    ? pointerDirection.y > 0
+      ? "Down"
+      : "Up"
+    : Math.floor(placementSeed / 2) % 2 === 0
+      ? "Up"
+      : "Down";
 
-  return (
-    <span
-      className={styles.constellationStar}
-      data-star={id}
-      style={
-        {
-          left: x + "%",
-          top: y + "%",
-          "--star-size": size + "px",
-          "--star-delay": -(motionSeed % 7) * 0.47 + "s",
-          "--star-duration": 4.2 + (motionSeed % 5) * 0.38 + "s",
-        } as CSSProperties
-      }
-    />
-  );
+  if (horizontal === "Right" && !canOpenRight && canOpenLeft) {
+    horizontal = "Left";
+  } else if (horizontal === "Left" && !canOpenLeft && canOpenRight) {
+    horizontal = "Right";
+  } else if (!canOpenLeft && !canOpenRight) {
+    horizontal = anchor.x < window.innerWidth / 2 ? "Right" : "Left";
+  }
+
+  if (vertical === "Down" && !canOpenDown && canOpenUp) {
+    vertical = "Up";
+  } else if (vertical === "Up" && !canOpenUp && canOpenDown) {
+    vertical = "Down";
+  } else if (!canOpenUp && !canOpenDown) {
+    vertical = anchor.y < window.innerHeight / 2 ? "Down" : "Up";
+  }
+
+  return (horizontal + vertical) as StarCardPlacement;
 }
-
-
-type ConstellationConnection = {
-  from: string;
-  to: string;
-};
-
-type Constellation = {
-  id: string;
-  stars: ConstellationStar[];
-  connections: ConstellationConnection[];
-};
-
-const constellations: Constellation[] = [
-  {
-    id: "constellation-1",
-    stars: [
-      { id: "1-1", x: 16.872, y: 21.7, size: 32 },
-      { id: "1-2", x: 23.338, y: 29.3, size: 24 },
-      { id: "1-3", x: 23.216, y: 39.9, size: 26 },
-      { id: "1-4", x: 14.92, y: 39.4, size: 34 },
-      { id: "1-5", x: 20.166, y: 50.8, size: 32 },
-      { id: "1-6", x: 30.292, y: 43.9, size: 28 },
-      { id: "1-7", x: 33.83, y: 55.7, size: 36 },
-      { id: "1-8", x: 38.1, y: 42.6, size: 28 },
-    ],
-    connections: [
-      { from: "1-1", to: "1-2" },
-      { from: "1-2", to: "1-3" },
-      { from: "1-3", to: "1-4" },
-      { from: "1-4", to: "1-5" },
-      { from: "1-5", to: "1-6" },
-      { from: "1-6", to: "1-7" },
-      { from: "1-7", to: "1-8" },
-    ],
-  },
-  {
-    id: "constellation-2",
-    stars: [
-      { id: "2-1", x: 85.9, y: 18.6, size: 36 },
-      { id: "2-2", x: 79.1, y: 31, size: 30 },
-      { id: "2-3", x: 90.2, y: 38.9, size: 34 },
-      { id: "2-4", x: 83.5, y: 51, size: 24 },
-      { id: "2-5", x: 80.6, y: 40.7, size: 34 },
-      { id: "2-6", x: 76.9, y: 49.4, size: 28 },
-      { id: "2-7", x: 70, y: 41.4, size: 32 },
-      { id: "2-8", x: 63.8, y: 50.9, size: 28 },
-    ],
-    connections: [
-      { from: "2-1", to: "2-2" },
-      { from: "2-2", to: "2-3" },
-      { from: "2-3", to: "2-4" },
-      { from: "2-4", to: "2-5" },
-      { from: "2-5", to: "2-6" },
-      { from: "2-6", to: "2-7" },
-      { from: "2-7", to: "2-8" },
-    ],
-  },
-  {
-    id: "constellation-3",
-    stars: [
-      { id: "3-1", x: 46.9, y: 74.6, size: 34 },
-      { id: "3-2", x: 43.9, y: 84.3, size: 28 },
-      { id: "3-3", x: 56.7, y: 82.4, size: 32 },
-      { id: "3-4", x: 64, y: 94.6, size: 28 },
-      { id: "3-5", x: 53.7, y: 92.9, size: 30 },
-      { id: "3-6", x: 48.2, y: 99.8, size: 32 },
-    ],
-    connections: [
-      { from: "3-1", to: "3-2" },
-      { from: "3-2", to: "3-3" },
-      { from: "3-3", to: "3-4" },
-      { from: "3-4", to: "3-5" },
-      { from: "3-5", to: "3-6" },
-    ],
-  },
-  {
-    id: "constellation-4",
-    stars: [
-      { id: "4-1", x: 26.19, y: 67, size: 32 },
-      { id: "4-2", x: 35.95, y: 69.5, size: 28 },
-      { id: "4-3", x: 16.308, y: 71.8, size: 30 },
-      { id: "4-4", x: 22.896, y: 79.7, size: 26 },
-      { id: "4-5", x: 32.656, y: 77.7, size: 32 },
-      { id: "4-6", x: 39, y: 92.9, size: 28 },
-      { id: "4-7", x: 29.362, y: 87.8, size: 30 },
-      { id: "4-8", x: 18.138, y: 93.5, size: 28 },
-    ],
-    connections: [
-      { from: "4-1", to: "4-2" },
-      { from: "4-1", to: "4-3" },
-      { from: "4-3", to: "4-4" },
-      { from: "4-4", to: "4-5" },
-      { from: "4-5", to: "4-6" },
-      { from: "4-6", to: "4-7" },
-      { from: "4-7", to: "4-8" },
-    ],
-  },
-  {
-    id: "constellation-5",
-    stars: [
-      { id: "5-1", x: 64, y: 68.9, size: 28 },
-      { id: "5-2", x: 74, y: 64.3, size: 32 },
-      { id: "5-3", x: 69, y: 81.3, size: 28 },
-      { id: "5-4", x: 74.8, y: 90, size: 32 },
-      { id: "5-5", x: 79.2, y: 77.4, size: 34 },
-      { id: "5-6", x: 89.7, y: 72.1, size: 30 },
-      { id: "5-7", x: 93.1, y: 89.2, size: 32 },
-    ],
-    connections: [
-      { from: "5-1", to: "5-2" },
-      { from: "5-2", to: "5-3" },
-      { from: "5-3", to: "5-4" },
-      { from: "5-4", to: "5-5" },
-      { from: "5-5", to: "5-6" },
-      { from: "5-6", to: "5-7" },
-    ],
-  },
-
-];
-
 export function ConstellationField() {
   const fieldRef = useRef<HTMLDivElement>(null);
+  const pointerMotionRef = useRef<{
+    lastX: number | null;
+    lastY: number | null;
+    deltaX: number;
+    deltaY: number;
+  }>({ lastX: null, lastY: null, deltaX: 1, deltaY: 0 });
+  const [activeStarId, setActiveStarId] = useState<string | null>(null);
+  const [expandedStarId, setExpandedStarId] = useState<string | null>(null);
+  const [cardPlacement, setCardPlacement] =
+    useState<StarCardPlacement>("RightDown");
+
+  const handleActivateStar = (id: string, anchor: StarAnchor) => {
+    setCardPlacement(
+      getCardPlacement(id, anchor, {
+        x: pointerMotionRef.current.deltaX,
+        y: pointerMotionRef.current.deltaY,
+      }),
+    );
+    setActiveStarId(id);
+    setExpandedStarId((currentId) => (currentId === id ? currentId : null));
+  };
+
+  const handleDeactivateStar = (id: string) => {
+    setActiveStarId((currentId) => (currentId === id ? null : currentId));
+    setExpandedStarId((currentId) => (currentId === id ? null : currentId));
+  };
+
+  const handleToggleDescription = (id: string) => {
+    setExpandedStarId((currentId) => (currentId === id ? null : id));
+  };
+
+  useEffect(() => {
+    const trackPointerDirection = (event: PointerEvent) => {
+      const pointerMotion = pointerMotionRef.current;
+
+      if (pointerMotion.lastX !== null && pointerMotion.lastY !== null) {
+        const deltaX = event.clientX - pointerMotion.lastX;
+        const deltaY = event.clientY - pointerMotion.lastY;
+
+        if (Math.hypot(deltaX, deltaY) >= 0.35) {
+          pointerMotion.deltaX = deltaX;
+          pointerMotion.deltaY = deltaY;
+        }
+      }
+
+      pointerMotion.lastX = event.clientX;
+      pointerMotion.lastY = event.clientY;
+    };
+
+    window.addEventListener("pointermove", trackPointerDirection, {
+      capture: true,
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("pointermove", trackPointerDirection, true);
+    };
+  }, []);
 
   useEffect(() => {
     const field = fieldRef.current;
@@ -493,8 +467,12 @@ export function ConstellationField() {
   return (
     <div
       ref={fieldRef}
-      className={styles.constellationField}
-      aria-hidden="true"
+      className={[
+        styles.constellationField,
+        activeStarId ? styles.constellationFieldCardActive : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {constellations.map((constellation) => {
         const starsById = new Map(
@@ -504,13 +482,23 @@ export function ConstellationField() {
         return (
           <div
             key={constellation.id}
-            className={styles.constellation}
+            className={[
+              styles.constellation,
+              activeStarId?.startsWith(
+                constellation.id.replace("constellation-", "") + "-",
+              )
+                ? styles.constellationActive
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             data-constellation={constellation.id}
           >
             <svg
               className={styles.constellationLines}
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
+              aria-hidden="true"
             >
               {constellation.connections.map((connection) => {
                 const from = starsById.get(connection.from);
@@ -536,12 +524,15 @@ export function ConstellationField() {
             </svg>
 
             {constellation.stars.map((star) => (
-              <Star
+              <StarCard
                 key={star.id}
-                id={star.id}
-                x={star.x}
-                y={star.y}
-                size={star.size}
+                {...star}
+                placement={cardPlacement}
+                isActive={activeStarId === star.id}
+                isExpanded={expandedStarId === star.id}
+                onActivate={handleActivateStar}
+                onDeactivate={handleDeactivateStar}
+                onToggleDescription={handleToggleDescription}
               />
             ))}
           </div>
@@ -550,3 +541,4 @@ export function ConstellationField() {
     </div>
   );
 }
+
